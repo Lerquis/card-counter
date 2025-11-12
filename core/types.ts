@@ -26,6 +26,8 @@ export interface DrillConfig {
   leaveOutCards: number;
   showCardHistory: boolean;
   showAssistAlways: boolean;
+  advanceMode: "manual" | "auto";
+  autoMs: number;
 }
 
 // Blackjack configuration

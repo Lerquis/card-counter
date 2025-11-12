@@ -68,6 +68,8 @@ interface GameState {
   dealerPlay: () => void;
   settleRound: () => void;
   newRound: () => void;
+  performShuffle: () => void;
+  reshuffleNow: () => void;
   updateBlackjackConfig: (config: Partial<BlackjackConfig>) => void;
 
   // Settings actions
@@ -79,6 +81,8 @@ const defaultDrillConfig: DrillConfig = {
   leaveOutCards: 0,
   showCardHistory: true,
   showAssistAlways: false,
+  advanceMode: "manual",
+  autoMs: 1000,
 };
 
 const defaultBlackjackConfig: BlackjackConfig = {
@@ -101,7 +105,10 @@ const BLACKJACK_PLAYER_STATE_KEY = "blackjack_player_state";
 function savePlayerState(bankroll: number, buyIn: number): void {
   if (typeof window !== "undefined") {
     try {
-      localStorage.setItem(BLACKJACK_PLAYER_STATE_KEY, JSON.stringify({ bankroll, buyIn }));
+      localStorage.setItem(
+        BLACKJACK_PLAYER_STATE_KEY,
+        JSON.stringify({ bankroll, buyIn })
+      );
     } catch (error) {
       console.error("Failed to save player state:", error);
     }
@@ -128,6 +135,7 @@ export const useGame = create<GameState>((set, get) => ({
   drill: {
     session: null,
     config: defaultDrillConfig,
+    isPlaying: false,
     recentCards: [],
     lastCard: null,
     snapshot: {
@@ -163,6 +171,7 @@ export const useGame = create<GameState>((set, get) => ({
       drill: {
         session,
         config,
+        isPlaying: false,
         recentCards: [],
         lastCard: null,
         snapshot,
@@ -203,7 +212,12 @@ export const useGame = create<GameState>((set, get) => ({
   },
 
   togglePlayDrill: () => {
-    // Removed - no longer needed
+    set((state) => ({
+      drill: {
+        ...state.drill,
+        isPlaying: !state.drill.isPlaying,
+      },
+    }));
   },
 
   resetDrill: () => {
