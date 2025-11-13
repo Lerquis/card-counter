@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "@/store/useGame";
 import { TopBar } from "@/app/components/TopBar";
 import { AssistIndicator } from "@/app/components/AssistIndicator";
@@ -23,6 +23,8 @@ import { Badge } from "@/app/components/ui/badge";
 export default function DrillPage() {
   const router = useRouter();
   const { drill, startDrill, resetDrill, nextCardDrill } = useGame();
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   // Initialize drill on mount
   useEffect(() => {
@@ -49,20 +51,44 @@ export default function DrillPage() {
 
       <AssistIndicator snapshot={drill.snapshot} />
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6 h-[calc(100vh-100px)] md:h-[calc(100vh-100px)] sm:h-[calc(100vh-80px)] overflow-y-auto">
         {/* Main Drill Board */}
         <DrillBoard
           lastCard={drill.lastCard}
+          currentGroup={drill.currentGroup}
           recentCards={drill.recentCards}
           showCardHistory={drill.config.showCardHistory}
           isDone={isDone}
           onNext={nextCardDrill}
           onReset={resetDrill}
+          onOpenConfig={() => setShowConfigModal(true)}
+          onOpenStats={() => setShowStatsModal(true)}
         />
 
-        {/* Configuration and Stats */}
-        <div className="grid md:grid-cols-2 gap-6">
+      </div>
+
+      {/* Configuration Modal */}
+      <Dialog open={showConfigModal} onOpenChange={setShowConfigModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-600/50">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-slate-100 font-bold">Drill Configuration</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Configure your drill settings. Changes will reset the current drill.
+            </DialogDescription>
+          </DialogHeader>
           <DrillConfiguration />
+        </DialogContent>
+      </Dialog>
+
+      {/* Statistics Modal */}
+      <Dialog open={showStatsModal} onOpenChange={setShowStatsModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-600/50">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-slate-100 font-bold">Statistics</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              View your current count statistics.
+            </DialogDescription>
+          </DialogHeader>
           <StatsPanel
             snapshot={drill.snapshot}
             leaveOutCards={drill.config.leaveOutCards}
@@ -70,8 +96,8 @@ export default function DrillPage() {
             showStats={drill.showStats}
             onToggleStats={toggleStats}
           />
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Completion Dialog */}
       <Dialog open={isDone}>

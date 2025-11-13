@@ -1,23 +1,57 @@
 "use client";
 
+import { useState } from "react";
 import { CardImage } from "./CardImage";
 import type { Card } from "@/core/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
-import { SkipForward, RotateCcw } from "lucide-react";
+import { SkipForward, RotateCcw, Settings, BarChart3 } from "lucide-react";
+import { FullscreenButton } from "./FullscreenButton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 interface DrillBoardProps {
   lastCard: Card | null;
+  currentGroup: Card[];
   recentCards: Card[];
   showCardHistory: boolean;
   isDone: boolean;
   onNext: () => void;
   onReset: () => void;
+  onOpenConfig: () => void;
+  onOpenStats: () => void;
 }
 
-export function DrillBoard({ lastCard, recentCards, showCardHistory, isDone, onNext, onReset }: DrillBoardProps) {
+export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistory, isDone, onNext, onReset, onOpenConfig, onOpenStats }: DrillBoardProps) {
+  const isGroupMode = currentGroup.length > 1;
+  const groupKey = currentGroup.map(c => `${c.rank}-${c.suit}`).join('_');
+
   return (
-    <div className="relative min-h-[600px] rounded-2xl overflow-hidden p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl">
+    <div id="drill-board" className="relative min-h-[600px] rounded-2xl overflow-hidden p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl">
+      {/* Fullscreen Button */}
+      <FullscreenButton targetId="drill-board" />
+
+      {/* Config and Stats Buttons */}
+      <div className="absolute top-4 left-4 z-50 flex gap-2">
+        <Button
+          onClick={onOpenConfig}
+          size="icon"
+          variant="ghost"
+          className="bg-slate-800/80 hover:bg-slate-700/90 backdrop-blur-sm border border-slate-600/50 text-slate-200 hover:text-white shadow-lg"
+          title="Configuration"
+        >
+          <Settings className="w-5 h-5" />
+        </Button>
+        <Button
+          onClick={onOpenStats}
+          size="icon"
+          variant="ghost"
+          className="bg-slate-800/80 hover:bg-slate-700/90 backdrop-blur-sm border border-slate-600/50 text-slate-200 hover:text-white shadow-lg"
+          title="Statistics"
+        >
+          <BarChart3 className="w-5 h-5" />
+        </Button>
+      </div>
+
       {/* Decorative background */}
       <div className="absolute inset-0 bg-[url(/blackjack_layout.png)] bg-cover bg-center opacity-10" />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/50" />
@@ -30,18 +64,54 @@ export function DrillBoard({ lastCard, recentCards, showCardHistory, isDone, onN
         {/* Main Card Display */}
         <div className="flex flex-col items-center justify-center min-h-[350px] gap-6">
           <AnimatePresence mode="wait">
-            {lastCard ? (
-              <motion.div
-                key={`${lastCard.rank}-${lastCard.suit}`}
-                initial={{ scale: 0, rotate: -180, opacity: 0, y: -50 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1, y: 0 }}
-                exit={{ scale: 0, rotate: 180, opacity: 0, y: 50 }}
-                transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 blur-2xl rounded-2xl" />
-                <CardImage card={lastCard} size="lg" className="shadow-2xl relative z-10 transform hover:scale-105 transition-transform duration-200" />
-              </motion.div>
+            {currentGroup.length > 0 ? (
+              isGroupMode ? (
+                // Group mode: Show multiple cards horizontally
+                <motion.div
+                  key={groupKey}
+                  initial={{ scale: 0.8, opacity: 0, y: -30 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.8, opacity: 0, y: 30 }}
+                  transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 blur-3xl rounded-2xl" />
+                  <div className="flex gap-4 items-center relative z-10">
+                    {currentGroup.map((card, idx) => (
+                      <motion.div
+                        key={`${card.rank}-${card.suit}-${idx}`}
+                        initial={{ x: -50, opacity: 0, rotate: -20 }}
+                        animate={{ x: 0, opacity: 1, rotate: 0 }}
+                        transition={{ delay: idx * 0.1, type: "spring", bounce: 0.4 }}
+                      >
+                        <CardImage
+                          card={card}
+                          size="md"
+                          className="shadow-2xl transform hover:scale-110 hover:-translate-y-2 transition-transform duration-200"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <span className="text-lg font-bold text-purple-300 bg-purple-900/50 px-4 py-2 rounded-full border border-purple-500/50">
+                      Group of {currentGroup.length}
+                    </span>
+                  </div>
+                </motion.div>
+              ) : (
+                // Single card mode
+                <motion.div
+                  key={`${lastCard?.rank}-${lastCard?.suit}`}
+                  initial={{ scale: 0, rotate: -180, opacity: 0, y: -50 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1, y: 0 }}
+                  exit={{ scale: 0, rotate: 180, opacity: 0, y: 50 }}
+                  transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 blur-2xl rounded-2xl" />
+                  <CardImage card={lastCard!} size="lg" className="shadow-2xl relative z-10 transform hover:scale-105 transition-transform duration-200" />
+                </motion.div>
+              )
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

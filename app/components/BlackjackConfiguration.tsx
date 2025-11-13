@@ -4,10 +4,15 @@ import { useGame } from "@/store/useGame";
 import { Card } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Switch } from "@/app/components/ui/switch";
-import { Settings } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { Settings, RotateCcw } from "lucide-react";
 
 export function BlackjackConfiguration() {
   const { blackjack, updateBlackjackConfig, settings, updateSettings, reshuffleNow } = useGame();
+
+  // Get current phase
+  const currentPhase = blackjack.game ? blackjack.game.getState().phase : "BETTING";
+  const isBettingPhase = currentPhase === "BETTING";
 
   const handleDeckChange = (decks: number) => {
     updateBlackjackConfig({ decks });
@@ -17,6 +22,12 @@ export function BlackjackConfiguration() {
       if (gameState.phase === "BETTING") {
         reshuffleNow();
       }
+    }
+  };
+
+  const handleReset = () => {
+    if (isBettingPhase) {
+      reshuffleNow();
     }
   };
 
@@ -36,12 +47,13 @@ export function BlackjackConfiguration() {
             <span className="text-2xl font-bold text-white">{blackjack.config.decks}</span>
           </div>
           <select
-            className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-700 text-white hover:bg-slate-600 transition-colors cursor-pointer focus:ring-2 focus:ring-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-700 text-white hover:bg-slate-600 transition-colors cursor-pointer focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             value={blackjack.config.decks}
             onChange={(e) => {
               const decks = parseInt(e.target.value);
               handleDeckChange(decks);
             }}
+            disabled={!isBettingPhase}
           >
             <option value="1">1</option>
             <option value="2">2</option>
@@ -49,6 +61,9 @@ export function BlackjackConfiguration() {
             <option value="6">6</option>
             <option value="8">8</option>
           </select>
+          {!isBettingPhase && (
+            <p className="text-xs text-yellow-400 mt-2">Configuration locked during game. Use Reset to shuffle.</p>
+          )}
         </div>
 
         {/* Penetration */}
@@ -58,12 +73,13 @@ export function BlackjackConfiguration() {
             <span className="text-2xl font-bold text-white">{(blackjack.config.penetrationPct * 100).toFixed(0)}%</span>
           </div>
           <select
-            className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-700 text-white hover:bg-slate-600 transition-colors cursor-pointer focus:ring-2 focus:ring-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-700 text-white hover:bg-slate-600 transition-colors cursor-pointer focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             value={blackjack.config.penetrationPct}
             onChange={(e) => {
               const penetrationPct = parseFloat(e.target.value);
               updateBlackjackConfig({ penetrationPct });
             }}
+            disabled={!isBettingPhase}
           >
             <option value="0.5">50%</option>
             <option value="0.6">60%</option>
@@ -73,49 +89,19 @@ export function BlackjackConfiguration() {
           </select>
         </div>
 
-        {/* Show Count Toggle */}
-        <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-          <div>
-            <Label htmlFor="show-count" className="text-slate-200 font-semibold cursor-pointer">
-              Show Count
-            </Label>
-            <p className="text-xs text-slate-400 mt-1">Display running and true count</p>
-          </div>
-          <Switch
-            id="show-count"
-            checked={settings.showAssistAlways}
-            onCheckedChange={(checked) => updateSettings({ showAssistAlways: checked })}
-          />
-        </div>
-
-        {/* Basic Strategy Hints */}
-        <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-          <div>
-            <Label htmlFor="basic-hints" className="text-slate-200 font-semibold cursor-pointer">
-              Strategy Hints
-            </Label>
-            <p className="text-xs text-slate-400 mt-1">Show basic strategy recommendations</p>
-          </div>
-          <Switch
-            id="basic-hints"
-            checked={settings.enableBasicStrategyHints}
-            onCheckedChange={(checked) => updateSettings({ enableBasicStrategyHints: checked })}
-          />
-        </div>
-
-        {/* Index Deviations */}
-        <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-          <div>
-            <Label htmlFor="index-dev" className="text-slate-200 font-semibold cursor-pointer">
-              Index Deviations
-            </Label>
-            <p className="text-xs text-slate-400 mt-1">Enable count-based strategy adjustments</p>
-          </div>
-          <Switch
-            id="index-dev"
-            checked={settings.enableIndexDeviations}
-            onCheckedChange={(checked) => updateSettings({ enableIndexDeviations: checked })}
-          />
+        {/* Reset Button */}
+        <div className="pt-4 border-t border-slate-700/50">
+          <Button
+            onClick={handleReset}
+            disabled={!isBettingPhase}
+            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-5 h-5 mr-2" />
+            Reset (Shuffle)
+          </Button>
+          {!isBettingPhase && (
+            <p className="text-xs text-slate-400 mt-2 text-center">Reset only available during betting phase</p>
+          )}
         </div>
       </div>
     </Card>

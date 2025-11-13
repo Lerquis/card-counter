@@ -28,6 +28,8 @@ export interface DrillConfig {
   showAssistAlways: boolean;
   advanceMode: "manual" | "auto";
   autoMs: number;
+  enableGroupMode: boolean;
+  maxGroupSize: number;
 }
 
 // Blackjack configuration

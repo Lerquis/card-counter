@@ -97,6 +97,49 @@ export function DrillConfiguration() {
             onCheckedChange={(checked) => updateDrillConfig({ showAssistAlways: checked })}
           />
         </div>
+
+        {/* Group Mode Toggle */}
+        <div className="flex items-center justify-between bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-4 rounded-lg border border-purple-500/50">
+          <div>
+            <Label htmlFor="group-mode" className="text-purple-200 font-semibold cursor-pointer">
+              Enable Group Mode
+            </Label>
+            <p className="text-xs text-purple-300/80 mt-1">Practice counting multiple cards at once</p>
+          </div>
+          <Switch
+            id="group-mode"
+            checked={drill.config.enableGroupMode}
+            onCheckedChange={(checked) => {
+              const newConfig = { ...drill.config, enableGroupMode: checked };
+              startDrill(newConfig);
+            }}
+          />
+        </div>
+
+        {/* Max Group Size - Only show when group mode is enabled */}
+        {drill.config.enableGroupMode && (
+          <div className="space-y-3 bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-4 rounded-lg border border-purple-500/50">
+            <div className="flex justify-between items-center">
+              <Label className="text-purple-200 font-semibold">Max Group Size</Label>
+              <span className="text-2xl font-bold text-purple-100">{drill.config.maxGroupSize}</span>
+            </div>
+            <Slider
+              value={[drill.config.maxGroupSize]}
+              onValueChange={([value]) => {
+                const newConfig = { ...drill.config, maxGroupSize: value };
+                startDrill(newConfig);
+              }}
+              min={2}
+              max={6}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-purple-300/80">
+              <span>2 cards</span>
+              <span>6 cards</span>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

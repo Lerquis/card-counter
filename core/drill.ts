@@ -4,7 +4,7 @@ import { Counter } from "./counting";
 
 export interface DrillResult {
   done: boolean;
-  card: Card | null;
+  cards: Card[];
   snap: CountSnapshot;
 }
 
@@ -20,27 +20,71 @@ export class DrillSession {
   }
 
   /**
-   * Advances to the next card in the drill
+   * Advances to the next card(s) in the drill
    */
   next(): DrillResult {
-    const card = this.shoe.dealOne();
+    const cardsRemaining = this.shoe.cardsRemaining();
 
-    if (card === null) {
+    if (cardsRemaining === 0) {
       return {
         done: true,
-        card: null,
+        cards: [],
         snap: this.counter.snapshot(0),
       };
     }
 
-    this.counter.seen(card);
+    let groupSize = 1;
+
+    if (this.config.enableGroupMode) {
+      groupSize = this.determineGroupSize(cardsRemaining);
+    }
+
+    const cards: Card[] = [];
+    for (let i = 0; i < groupSize; i++) {
+      const card = this.shoe.dealOne();
+      if (card !== null) {
+        cards.push(card);
+        this.counter.seen(card);
+      }
+    }
+
     const snap = this.counter.snapshot(this.shoe.cardsRemaining());
 
     return {
-      done: false,
-      card,
+      done: this.shoe.cardsRemaining() === 0,
+      cards,
       snap,
     };
+  }
+
+  /**
+   * Determines the optimal group size based on remaining cards
+   */
+  private determineGroupSize(cardsRemaining: number): number {
+    const maxSize = this.config.maxGroupSize;
+
+    // If we have enough cards, use a random size between 2 and maxGroupSize
+    if (cardsRemaining >= maxSize * 2) {
+      return Math.floor(Math.random() * (maxSize - 1)) + 2; // Random between 2 and maxSize
+    }
+
+    // Smart distribution for remaining cards
+    // Try to divide remaining cards into reasonable groups
+    if (cardsRemaining <= maxSize) {
+      return cardsRemaining;
+    }
+
+    // Find a group size that divides evenly or leaves a reasonable remainder
+    for (let size = maxSize; size >= 2; size--) {
+      const remainder = cardsRemaining % size;
+      // If it divides evenly or leaves a remainder >= 2, use this size
+      if (remainder === 0 || remainder >= 2) {
+        return size;
+      }
+    }
+
+    // Default: use maxGroupSize
+    return Math.min(maxSize, cardsRemaining);
   }
 
   /**

@@ -20,6 +20,7 @@ interface GameState {
     isPlaying: boolean;
     recentCards: Card[];
     lastCard: Card | null;
+    currentGroup: Card[];
     snapshot: CountSnapshot;
     leftOutCards: Card[];
     showStats: boolean;
@@ -83,6 +84,8 @@ const defaultDrillConfig: DrillConfig = {
   showAssistAlways: false,
   advanceMode: "manual",
   autoMs: 1000,
+  enableGroupMode: false,
+  maxGroupSize: 6,
 };
 
 const defaultBlackjackConfig: BlackjackConfig = {
@@ -91,7 +94,7 @@ const defaultBlackjackConfig: BlackjackConfig = {
   handsPerPlayer: 1,
   botSeats: 0,
   enableBasicStrategyHints: true,
-  enableIndexDeviations: false,
+  enableIndexDeviations: true,
   minBet: 10,
   maxBet: 5000,
   dealerHitsSoft17: false,
@@ -138,6 +141,7 @@ export const useGame = create<GameState>((set, get) => ({
     isPlaying: false,
     recentCards: [],
     lastCard: null,
+    currentGroup: [],
     snapshot: {
       runningCount: 0,
       trueCount: 0,
@@ -157,7 +161,7 @@ export const useGame = create<GameState>((set, get) => ({
     showAssistAlways: false,
     showAssistOnHover: true,
     enableBasicStrategyHints: true,
-    enableIndexDeviations: false,
+    enableIndexDeviations: true,
   },
 
   setMode: (mode) => set({ mode }),
@@ -174,6 +178,7 @@ export const useGame = create<GameState>((set, get) => ({
         isPlaying: false,
         recentCards: [],
         lastCard: null,
+        currentGroup: [],
         snapshot,
         leftOutCards,
         showStats: true,
@@ -192,20 +197,22 @@ export const useGame = create<GameState>((set, get) => ({
         drill: {
           ...state.drill,
           snapshot: result.snap,
+          currentGroup: [],
         },
       }));
       return;
     }
 
-    const newRecentCards = result.card
-      ? [...recentCards, result.card].slice(-15) // Keep last 15 cards
+    const newRecentCards = result.cards.length > 0
+      ? [...recentCards, ...result.cards].slice(-15) // Keep last 15 cards
       : recentCards;
 
     set((state) => ({
       drill: {
         ...state.drill,
         recentCards: newRecentCards,
-        lastCard: result.card,
+        lastCard: result.cards[result.cards.length - 1] || null,
+        currentGroup: result.cards,
         snapshot: result.snap,
       },
     }));
