@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Activity, Spade } from "lucide-react";
+import { Home, Activity, Spade, Brain } from "lucide-react";
 
 export function TopBar() {
   const pathname = usePathname();
 
   const isDrill = pathname?.includes("drill");
   const isBlackjack = pathname?.includes("blackjack");
+  const isQuiz = pathname?.includes("quiz");
   const isHome = pathname === "/";
 
   return (
@@ -27,6 +28,17 @@ export function TopBar() {
             >
               <Home className="w-4 h-4" />
               Home
+            </Link>
+            <Link
+              href="/quiz"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                isQuiz
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30"
+                  : "bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50"
+              }`}
+            >
+              <Brain className="w-4 h-4" />
+              Quiz
             </Link>
             <Link
               href="/drill"

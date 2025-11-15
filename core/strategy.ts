@@ -418,6 +418,9 @@ export function suggestAction(
     return "STAND";
   }
 
+  // Normalize dealer upcard (J, Q, K -> "10" for table lookup)
+  const normalizedDealerUpcard = ["J", "Q", "K"].includes(dealerUpcard) ? "10" : dealerUpcard;
+
   // Check index deviations first if enabled
   if (enableDeviations) {
     const deviation = getApplicableDeviation(playerCards, dealerUpcard, trueCount);
@@ -428,19 +431,21 @@ export function suggestAction(
 
   // Check if it's a pair
   if (isPair(playerCards)) {
-    const pairKey = `${playerCards[0].rank},${playerCards[0].rank}`;
-    const action = BASIC_STRATEGY.pair[pairKey]?.[dealerUpcard];
+    // Normalize player card rank for pair key
+    const normalizedRank = ["J", "Q", "K"].includes(playerCards[0].rank) ? "10" : playerCards[0].rank;
+    const pairKey = `${normalizedRank},${normalizedRank}`;
+    const action = BASIC_STRATEGY.pair[pairKey]?.[normalizedDealerUpcard];
     if (action) return action;
   }
 
   // Check soft or hard total
   const handKey = handValue.value.toString();
   if (handValue.isSoft) {
-    const action = BASIC_STRATEGY.soft[handKey]?.[dealerUpcard];
+    const action = BASIC_STRATEGY.soft[handKey]?.[normalizedDealerUpcard];
     if (action) return action;
   }
 
-  const action = BASIC_STRATEGY.hard[handKey]?.[dealerUpcard];
+  const action = BASIC_STRATEGY.hard[handKey]?.[normalizedDealerUpcard];
   if (action) return action;
 
   // Default fallback

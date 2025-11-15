@@ -13,7 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/app/components/ui/accordion";
-import { Activity, Spade, TrendingUp, Target, Zap, BookOpen } from "lucide-react";
+import { Activity, Spade, TrendingUp, Target, Zap, BookOpen, Brain } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -41,7 +41,53 @@ export default function HomePage() {
         </div>
 
         {/* Mode Cards */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Quiz Mode */}
+          <div className="group relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
+            <Card className="relative bg-slate-900/90 backdrop-blur-xl border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl" />
+              <CardHeader className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-3 bg-purple-500/20 rounded-xl">
+                    <Brain className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl text-white">Strategy Quiz</CardTitle>
+                    <CardDescription className="text-slate-400">
+                      Test your blackjack knowledge
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative space-y-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2 text-slate-300">
+                    <Brain className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Strategy practice</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-slate-300">
+                    <Target className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Instant feedback</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-slate-300">
+                    <TrendingUp className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Track accuracy</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-slate-300">
+                    <Zap className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Deviation testing</span>
+                  </div>
+                </div>
+                <Link href="/quiz" className="block">
+                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white border-0 shadow-lg shadow-purple-500/50" size="lg">
+                    Start Quiz
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Drill Mode */}
           <div className="group relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />

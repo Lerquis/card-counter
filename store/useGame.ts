@@ -3,11 +3,16 @@ import type {
   GameMode,
   DrillConfig,
   BlackjackConfig,
+  QuizConfig,
+  QuizHand,
+  QuizAnswerResult,
   Card,
   CountSnapshot,
+  Action,
 } from "@/core/types";
 import { DrillSession } from "@/core/drill";
 import { BlackjackGame } from "@/core/blackjack";
+import { QuizSession } from "@/core/quiz";
 
 interface GameState {
   // Current mode
@@ -31,6 +36,21 @@ interface GameState {
   blackjack: {
     game: BlackjackGame | null;
     config: BlackjackConfig;
+  };
+
+  // Quiz state
+  quiz: {
+    session: QuizSession | null;
+    config: QuizConfig;
+    currentHand: QuizHand | null;
+    lastResult: QuizAnswerResult | null;
+    showResult: boolean;
+    stats: {
+      correct: number;
+      incorrect: number;
+      streak: number;
+      bestStreak: number;
+    };
   };
 
   // Settings
@@ -74,6 +94,13 @@ interface GameState {
   reshuffleNow: () => void;
   updateBlackjackConfig: (config: Partial<BlackjackConfig>) => void;
 
+  // Quiz actions
+  startQuiz: (config: QuizConfig) => void;
+  answerQuiz: (action: Action) => void;
+  nextQuestionQuiz: () => void;
+  updateQuizConfig: (config: Partial<QuizConfig>) => void;
+  resetQuizStats: () => void;
+
   // Settings actions
   updateSettings: (settings: Partial<GameState["settings"]>) => void;
 }
@@ -100,6 +127,13 @@ const defaultBlackjackConfig: BlackjackConfig = {
   maxBet: 5000,
   dealerHitsSoft17: false,
   blackjackPayout: 1.5,
+};
+
+const defaultQuizConfig: QuizConfig = {
+  enableDeviations: false,
+  dealerHitsSoft17: false,
+  allowDoubleAfterSplit: true,
+  allowSurrender: true,
 };
 
 // LocalStorage keys
@@ -157,6 +191,20 @@ export const useGame = create<GameState>((set, get) => ({
   blackjack: {
     game: null,
     config: defaultBlackjackConfig,
+  },
+
+  quiz: {
+    session: null,
+    config: defaultQuizConfig,
+    currentHand: null,
+    lastResult: null,
+    showResult: false,
+    stats: {
+      correct: 0,
+      incorrect: 0,
+      streak: 0,
+      bestStreak: 0,
+    },
   },
 
   settings: {
@@ -464,6 +512,88 @@ export const useGame = create<GameState>((set, get) => ({
       blackjack: {
         ...state.blackjack,
         config: { ...state.blackjack.config, ...configUpdate },
+      },
+    }));
+  },
+
+  // Quiz actions
+  startQuiz: (config) => {
+    const session = new QuizSession(config);
+    const currentHand = session.generateNewHand();
+    const stats = session.getStats();
+
+    set({
+      quiz: {
+        session,
+        config,
+        currentHand,
+        lastResult: null,
+        showResult: false,
+        stats,
+      },
+    });
+  },
+
+  answerQuiz: (action) => {
+    const { session } = get().quiz;
+    if (!session) return;
+
+    const result = session.checkAnswer(action);
+    const stats = session.getStats();
+
+    set((state) => ({
+      quiz: {
+        ...state.quiz,
+        lastResult: result,
+        showResult: true,
+        stats,
+      },
+    }));
+  },
+
+  nextQuestionQuiz: () => {
+    const { session } = get().quiz;
+    if (!session) return;
+
+    const currentHand = session.generateNewHand();
+
+    set((state) => ({
+      quiz: {
+        ...state.quiz,
+        currentHand,
+        showResult: false,
+        lastResult: null,
+      },
+    }));
+  },
+
+  updateQuizConfig: (configUpdate) => {
+    const { session } = get().quiz;
+    const newConfig = { ...get().quiz.config, ...configUpdate };
+
+    if (session) {
+      session.updateConfig(configUpdate);
+    }
+
+    set((state) => ({
+      quiz: {
+        ...state.quiz,
+        config: newConfig,
+      },
+    }));
+  },
+
+  resetQuizStats: () => {
+    const { session } = get().quiz;
+    if (!session) return;
+
+    session.resetStats();
+    const stats = session.getStats();
+
+    set((state) => ({
+      quiz: {
+        ...state.quiz,
+        stats,
       },
     }));
   },

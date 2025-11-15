@@ -18,7 +18,7 @@ export interface CountSnapshot {
 }
 
 // Game modes
-export type GameMode = "DRILL" | "BLACKJACK";
+export type GameMode = "DRILL" | "BLACKJACK" | "QUIZ";
 
 // Drill configuration
 export interface DrillConfig {
@@ -107,4 +107,29 @@ export interface DrillState {
   isPlaying: boolean;
   snapshot: CountSnapshot;
   lastCard: Card | null;
+}
+
+// Quiz configuration
+export interface QuizConfig {
+  enableDeviations: boolean;
+  dealerHitsSoft17: boolean;
+  allowDoubleAfterSplit: boolean;
+  allowSurrender: boolean;
+}
+
+// Quiz question/hand
+export interface QuizHand {
+  playerCards: Card[];
+  dealerUpcard: Card;
+  trueCount: number;
+  canDouble: boolean;
+  canSplit: boolean;
+  canSurrender: boolean;
+}
+
+// Quiz answer result
+export interface QuizAnswerResult {
+  isCorrect: boolean;
+  correctAction: Action;
+  explanation: string;
 }
