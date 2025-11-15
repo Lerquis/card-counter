@@ -16,6 +16,7 @@ interface DrillBoardProps {
   recentCards: Card[];
   showCardHistory: boolean;
   isDone: boolean;
+  showCompletion: boolean;
   snapshot: { runningCount: number; trueCount: number };
   leftOutCards: Card[];
   leaveOutCardsConfig: number;
@@ -25,7 +26,7 @@ interface DrillBoardProps {
   onOpenStats: () => void;
 }
 
-export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistory, isDone, snapshot, leftOutCards, leaveOutCardsConfig, onNext, onReset, onOpenConfig, onOpenStats }: DrillBoardProps) {
+export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistory, isDone, showCompletion, snapshot, leftOutCards, leaveOutCardsConfig, onNext, onReset, onOpenConfig, onOpenStats }: DrillBoardProps) {
   const isGroupMode = currentGroup.length > 1;
   const groupKey = currentGroup.map(c => `${c.rank}-${c.suit}`).join('_');
 
@@ -68,7 +69,7 @@ export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistor
         {/* Main Card Display */}
         <div className="flex flex-col items-center justify-center min-h-[350px] gap-6">
           <AnimatePresence mode="wait">
-            {isDone ? (
+            {isDone && showCompletion ? (
               // Completion View
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}

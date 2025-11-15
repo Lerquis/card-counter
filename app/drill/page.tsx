@@ -59,6 +59,7 @@ export default function DrillPage() {
           recentCards={drill.recentCards}
           showCardHistory={drill.config.showCardHistory}
           isDone={isDone}
+          showCompletion={drill.showCompletion}
           snapshot={drill.snapshot}
           leftOutCards={drill.leftOutCards}
           leaveOutCardsConfig={drill.config.leaveOutCards}

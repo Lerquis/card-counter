@@ -24,6 +24,7 @@ interface GameState {
     snapshot: CountSnapshot;
     leftOutCards: Card[];
     showStats: boolean;
+    showCompletion: boolean;
   };
 
   // Blackjack state
@@ -150,6 +151,7 @@ export const useGame = create<GameState>((set, get) => ({
     },
     leftOutCards: [],
     showStats: true,
+    showCompletion: false,
   },
 
   blackjack: {
@@ -182,6 +184,7 @@ export const useGame = create<GameState>((set, get) => ({
         snapshot,
         leftOutCards,
         showStats: true,
+        showCompletion: false,
       },
     });
   },
@@ -193,13 +196,39 @@ export const useGame = create<GameState>((set, get) => ({
     const result = session.next();
 
     if (result.done) {
-      set((state) => ({
-        drill: {
-          ...state.drill,
-          snapshot: result.snap,
-          currentGroup: [],
-        },
-      }));
+      // Si hay cartas en el resultado, mostrarlas primero
+      if (result.cards.length > 0) {
+        const newRecentCards = [...recentCards, ...result.cards].slice(-15);
+        set((state) => ({
+          drill: {
+            ...state.drill,
+            recentCards: newRecentCards,
+            lastCard: result.cards[result.cards.length - 1] || null,
+            currentGroup: result.cards,
+            snapshot: result.snap,
+          },
+        }));
+
+        // Después de 1.5 segundos, mostrar el mensaje de completado
+        setTimeout(() => {
+          set((state) => ({
+            drill: {
+              ...state.drill,
+              showCompletion: true,
+            },
+          }));
+        }, 1500);
+      } else {
+        // No hay cartas, mostrar completado inmediatamente
+        set((state) => ({
+          drill: {
+            ...state.drill,
+            snapshot: result.snap,
+            currentGroup: [],
+            showCompletion: true,
+          },
+        }));
+      }
       return;
     }
 
