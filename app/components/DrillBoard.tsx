@@ -5,6 +5,7 @@ import { CardImage } from "./CardImage";
 import type { Card } from "@/core/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 import { SkipForward, RotateCcw, Settings, BarChart3 } from "lucide-react";
 import { FullscreenButton } from "./FullscreenButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -15,13 +16,16 @@ interface DrillBoardProps {
   recentCards: Card[];
   showCardHistory: boolean;
   isDone: boolean;
+  snapshot: { runningCount: number; trueCount: number };
+  leftOutCards: Card[];
+  leaveOutCardsConfig: number;
   onNext: () => void;
   onReset: () => void;
   onOpenConfig: () => void;
   onOpenStats: () => void;
 }
 
-export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistory, isDone, onNext, onReset, onOpenConfig, onOpenStats }: DrillBoardProps) {
+export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistory, isDone, snapshot, leftOutCards, leaveOutCardsConfig, onNext, onReset, onOpenConfig, onOpenStats }: DrillBoardProps) {
   const isGroupMode = currentGroup.length > 1;
   const groupKey = currentGroup.map(c => `${c.rank}-${c.suit}`).join('_');
 
@@ -64,7 +68,57 @@ export function DrillBoard({ lastCard, currentGroup, recentCards, showCardHistor
         {/* Main Card Display */}
         <div className="flex flex-col items-center justify-center min-h-[350px] gap-6">
           <AnimatePresence mode="wait">
-            {currentGroup.length > 0 ? (
+            {isDone ? (
+              // Completion View
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
+                className="w-full max-w-3xl space-y-6"
+              >
+                {/* Title */}
+                <div className="text-center mb-6">
+                  <h2 className="text-4xl font-bold text-cyan-300 mb-2">Drill Complete!</h2>
+                  <p className="text-slate-300 text-lg">You've gone through the entire shoe. Check your final count below.</p>
+                </div>
+
+                {/* Count Results */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-5 rounded-xl border border-cyan-600/50">
+                    <div className="text-sm text-cyan-200 font-medium mb-2">Final Running Count</div>
+                    <Badge className="text-3xl px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg">
+                      {snapshot.runningCount}
+                    </Badge>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-5 rounded-xl border border-blue-600/50">
+                    <div className="text-sm text-blue-200 font-medium mb-2">Final True Count</div>
+                    <Badge className="text-3xl px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+                      {snapshot.trueCount}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Left Out Cards */}
+                {leaveOutCardsConfig > 0 && leftOutCards.length > 0 && (
+                  <div className="bg-gradient-to-br from-orange-900/30 to-yellow-900/30 p-5 rounded-xl border border-orange-600/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="text-lg font-bold text-orange-200">
+                        Cards Left Out ({leftOutCards.length})
+                      </div>
+                    </div>
+                    <div className="text-sm text-orange-200/80 mb-4">
+                      These cards were removed from the deck before the drill. A perfect count means RC + leftout cards = 0.
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {leftOutCards.map((card, idx) => (
+                        <CardImage key={idx} card={card} size="sm" className="shadow-lg" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ) : currentGroup.length > 0 ? (
               isGroupMode ? (
                 // Group mode: Show multiple cards horizontally
                 <motion.div

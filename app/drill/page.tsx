@@ -59,6 +59,9 @@ export default function DrillPage() {
           recentCards={drill.recentCards}
           showCardHistory={drill.config.showCardHistory}
           isDone={isDone}
+          snapshot={drill.snapshot}
+          leftOutCards={drill.leftOutCards}
+          leaveOutCardsConfig={drill.config.leaveOutCards}
           onNext={nextCardDrill}
           onReset={resetDrill}
           onOpenConfig={() => setShowConfigModal(true)}
@@ -99,70 +102,6 @@ export default function DrillPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Completion Dialog */}
-      <Dialog open={isDone}>
-        <DialogContent className="max-w-3xl bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-cyan-600/50">
-          <DialogHeader>
-            <DialogTitle className="text-3xl text-cyan-300 font-bold">Drill Complete!</DialogTitle>
-            <DialogDescription className="text-slate-300 text-base">
-              You've gone through the entire shoe. Check your final count below.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-6 space-y-6">
-            {/* Count Results */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-5 rounded-xl border border-cyan-600/50">
-                <div className="text-sm text-cyan-200 font-medium mb-2">Final Running Count</div>
-                <Badge className="text-3xl px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg">
-                  {drill.snapshot.runningCount}
-                </Badge>
-              </div>
-              <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-5 rounded-xl border border-blue-600/50">
-                <div className="text-sm text-blue-200 font-medium mb-2">Final True Count</div>
-                <Badge className="text-3xl px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-                  {drill.snapshot.trueCount}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Left Out Cards */}
-            {drill.config.leaveOutCards > 0 && drill.leftOutCards.length > 0 && (
-              <div className="bg-gradient-to-br from-orange-900/30 to-yellow-900/30 p-5 rounded-xl border border-orange-600/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="text-lg font-bold text-orange-200">
-                    Cards Left Out ({drill.leftOutCards.length})
-                  </div>
-                </div>
-                <div className="text-sm text-orange-200/80 mb-4">
-                  These cards were removed from the deck before the drill. A perfect count means RC + leftout cards = 0.
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {drill.leftOutCards.map((card, idx) => (
-                    <CardImage key={idx} card={card} size="sm" className="shadow-lg" />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => router.push("/")}
-              className="bg-slate-700 hover:bg-slate-600 text-white"
-            >
-              Back to Home
-            </Button>
-            <Button
-              onClick={resetDrill}
-              className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
-            >
-              Restart Drill
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

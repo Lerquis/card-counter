@@ -305,7 +305,7 @@ export function TableBJ({
         <div className="bg-gradient-to-r from-purple-900/90 to-indigo-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-purple-700/50 flex items-center gap-2">
           <span className="text-purple-300 font-medium text-xs">SP:</span>
           <Badge className="text-xs bg-slate-700 text-slate-200">
-            {penetration.toFixed(0)}%
+            {(penetration * 100).toFixed(1)}%
           </Badge>
         </div>
         <div className="bg-gradient-to-r from-orange-900/90 to-amber-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-orange-700/50 flex items-center gap-2">
@@ -468,15 +468,33 @@ export function TableBJ({
                     min={blackjack.config.minBet}
                     max={blackjack.config.maxBet}
                     className="text-xl font-bold bg-slate-700 border-slate-600 text-white"
-                    disabled={humanPlayer?.hands[selectedHandIndex]?.bet > 0}
                   />
                   <Button
-                    onClick={handlePlaceBet}
-                    disabled={humanPlayer?.hands[selectedHandIndex]?.bet > 0}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold px-6 disabled:opacity-40 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      // If there's an existing bet, clear it first
+                      if (humanPlayer?.hands[selectedHandIndex]?.bet > 0) {
+                        clearBet(0, selectedHandIndex);
+                      }
+                      // Then place the new bet
+                      handlePlaceBet();
+                    }}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold px-6"
                   >
                     Place
                   </Button>
+                  {humanPlayer?.hands[selectedHandIndex]?.bet > 0 && (
+                    <Button
+                      onClick={() => {
+                        clearBet(0, selectedHandIndex);
+                        setCurrentBet(blackjack.config.minBet);
+                      }}
+                      variant="outline"
+                      className="bg-red-700 hover:bg-red-600 text-white border-red-600"
+                      title="Clear bet"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  )}
                 </div>
                 <div className="flex gap-2 text-xs text-slate-400">
                   <span>Min: ${blackjack.config.minBet}</span>
@@ -486,7 +504,7 @@ export function TableBJ({
                     <>
                       <span>•</span>
                       <span className="text-green-400 font-semibold">
-                        Bet placed on Hand {selectedHandIndex + 1}
+                        Current bet: ${humanPlayer.hands[selectedHandIndex].bet}
                       </span>
                     </>
                   )}
@@ -500,7 +518,6 @@ export function TableBJ({
                     key={value}
                     variant="outline"
                     onClick={() => handleChipClick(value)}
-                    disabled={humanPlayer?.hands[selectedHandIndex]?.bet > 0}
                     className={`h-10 bg-gradient-to-br ${
                       value === 10
                         ? "from-red-700 to-red-600"
@@ -511,7 +528,7 @@ export function TableBJ({
                         : value === 500
                         ? "from-yellow-700 to-yellow-600"
                         : "from-pink-700 to-pink-600"
-                    } hover:scale-105 transition-transform border-0 text-white shadow-lg font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                    } hover:scale-105 transition-transform border-0 text-white shadow-lg font-bold`}
                   >
                     <div className="flex flex-col items-center">
                       <span className="text-xs">+</span>
@@ -521,17 +538,30 @@ export function TableBJ({
                 ))}
               </div>
 
-              {/* Add Hand & Deal Buttons */}
+              {/* Clear & Add Hand Buttons */}
               <div className="grid grid-cols-2 gap-2">
-                {/* Add Hand Button */}
-                <Button
-                  onClick={handleAddHand}
-                  disabled={!canAddHand}
-                  className="h-10 text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add ({humanPlayer?.hands.length || 0}/3)
-                </Button>
+                {/* Reset Bet Button - Only show when single hand has bet */}
+                {humanPlayer && humanPlayer.hands.length === 1 && humanPlayer.hands[0].bet > 0 ? (
+                  <Button
+                    variant="secondary"
+                    className="h-10 text-sm font-semibold bg-slate-700 hover:bg-slate-600 text-white"
+                    onClick={() => {
+                      clearBet(0, 0);
+                      setCurrentBet(blackjack.config.minBet);
+                    }}
+                  >
+                    Reset Bet
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleAddHand}
+                    disabled={!canAddHand}
+                    className="h-10 text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add ({humanPlayer?.hands.length || 0}/3)
+                  </Button>
+                )}
 
                 {/* Deal Button */}
                 <Button
